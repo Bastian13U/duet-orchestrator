@@ -1,0 +1,13 @@
+{
+  "allowed_paths": ["results.json"],
+  "context_paths": ["results.json"],
+  "providers": {
+    "openai": {"model": "gpt-4.1-mini-2025-04-14", "input_usd_per_million": "0.50", "output_usd_per_million": "2.00"},
+    "anthropic": {"model": "claude-haiku-4-5-20251001", "input_usd_per_million": "1.25", "output_usd_per_million": "6.25"}
+  },
+  "budget": {"max_usd": "1.00", "max_calls": 12},
+  "tests": {"mode": "docker", "command": ["python", "-m", "unittest"], "timeout": 60, "image": "python:3.12-slim"},
+  "max_tasks": 2,
+  "max_rounds": 2,
+  "max_output_tokens": 1536
+}

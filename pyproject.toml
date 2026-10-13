@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "duet-orchestrator"
+version = "0.1.0"
+description = "Bounded OpenAI and Claude collaboration with isolated Git worktrees"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+duet = "duet.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["duet*"]
+

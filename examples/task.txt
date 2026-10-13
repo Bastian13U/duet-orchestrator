@@ -1,0 +1,3 @@
+Add subtract(a, b) and multiply(a, b), preserving add(a, b).
+Have OpenAI and Claude implement and independently review each other's work.
+Delegate a concrete task directly to the peer when useful. Preserve existing tests.
