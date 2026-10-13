@@ -80,4 +80,3 @@ No incluyas secretos, prompts privados ni código confidencial en incidencias
 públicas. En un repositorio privado, utiliza el canal privado acordado con el
 propietario e incluye pasos de reproducción mínimos, impacto y versión. Si se
 habilita la notificación privada de vulnerabilidades en GitHub, úsala.
-

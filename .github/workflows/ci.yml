@@ -55,4 +55,3 @@ jobs:
         run: docker pull python:3.12-slim
       - name: Run complete isolated demo
         run: python -m duet demo --directory "${{ runner.temp }}/duet-demo" --sandbox docker
-

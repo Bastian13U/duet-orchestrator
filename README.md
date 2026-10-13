@@ -161,4 +161,3 @@ No hay daemon, monitor permanente, despliegue automático ni fusión automática
 No se reanuda ciegamente una ejecución interrumpida: en especial, no se repiten
 peticiones cuyo cobro pudo ocurrir sin que llegara la respuesta. Consulta
 [operación y recuperación](docs/OPERATIONS.md) y [seguridad](SECURITY.md).
-
