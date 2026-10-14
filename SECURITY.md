@@ -14,8 +14,10 @@ simulada no envía datos a proveedores.
 
 ## Límites de privilegios
 
-- Las claves API sólo se leen del entorno del orquestador. No forman parte del
-  contexto deliberadamente enviado a los modelos ni de la configuración.
+- Las claves API se leen del entorno, del archivo exacto `.env.local` junto al
+  orquestador o de sus dos destinos específicos del Administrador de credenciales
+  de Windows. No se enumera el almacén del usuario ni se copian claves entre
+  fuentes. No forman parte del contexto deliberadamente enviado a los modelos.
 - Los agentes proponen cambios estructurados. El motor valida rutas y contenido
   antes de aplicarlos. No ofrece una herramienta de shell a los modelos.
 - Las rutas de escritura son una lista exacta, no una autorización recursiva a
@@ -37,6 +39,12 @@ del sistema o del entorno de ejecución. `.gitignore` reduce inclusiones
 accidentales, pero no detecta todos los secretos ni elimina archivos ya
 versionados. Revisa lo que se va a publicar y habilita las protecciones de
 secretos que admita tu alojamiento.
+
+El archivo `.env.local` es texto local: debe mantenerse privado y fuera de Git.
+El lector limita tamaño y formato y rechaza enlaces y archivos con varios enlaces
+físicos. El gestor de Windows persiste claves para el mismo usuario y equipo;
+no impide que otros procesos autorizados como ese usuario puedan leerlas.
+El configurador pide entrada oculta y nunca admite claves como argumentos.
 
 La auditoría conserva metadatos y contabilidad, no prompts ni respuestas
 completas. El repositorio objetivo, sus worktrees y sus commits contienen el

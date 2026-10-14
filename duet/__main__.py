@@ -33,10 +33,15 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == 'doctor':
+            from .credentials import status
+            openai_status = status('OPENAI_API_KEY')
+            anthropic_status = status('ANTHROPIC_API_KEY')
             result = {'python': sys.version.split()[0], 'git_available': bool(shutil.which('git')),
                       'docker_available': bool(shutil.which('docker')),
-                      'openai_key_present': bool(os.getenv('OPENAI_API_KEY')),
-                      'anthropic_key_present': bool(os.getenv('ANTHROPIC_API_KEY')),
+                      'openai_key_present': openai_status['present'],
+                      'anthropic_key_present': anthropic_status['present'],
+                      'openai_key_source': openai_status['source'],
+                      'anthropic_key_source': anthropic_status['source'],
                       'network_or_credentials_validated': False}
         elif args.command == 'demo':
             result = demo(args.directory, args.sandbox)

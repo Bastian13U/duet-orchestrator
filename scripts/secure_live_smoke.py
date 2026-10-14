@@ -1,4 +1,4 @@
-"""Run in your own terminal. Hidden key entry, process memory only, no key files."""
+"""Reuse local keys. Missing keys entered here stay only in process memory."""
 import getpass
 import json
 import os
@@ -14,24 +14,37 @@ def main():
     if not sys.stdin.isatty():
         print('Run this script interactively in your own terminal; never paste keys into chat.')
         return 2
-    print('Real OpenAI + Claude smoke test. Maximum ledger budget: US$1. Keys are not saved.')
+    print('Prueba real OpenAI + Claude. Presupuesto acumulado: US$1.')
+    print('Se reutilizan las claves configuradas; las que introduzcas aqui no se guardan.')
+    supplied = []
     try:
-        with warnings.catch_warnings():
-            warnings.simplefilter('error', getpass.GetPassWarning)
-            for key in ('OPENAI_API_KEY', 'ANTHROPIC_API_KEY'):
-                if not os.environ.get(key):
-                    os.environ[key] = getpass.getpass(key + ' (hidden): ').strip()
-        from duet.__main__ import main as cli
         directory = ROOT.parent / 'live-validation'
         if directory.exists():
-            print('Output already exists. Inspect it before repeating; budget ledger is shared.')
+            print('La salida ya existe. Revisala antes de repetir; el presupuesto es compartido.')
             return 2
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', getpass.GetPassWarning)
+            from duet.credentials import get_key, validate_key
+            for key in ('OPENAI_API_KEY', 'ANTHROPIC_API_KEY'):
+                if not get_key(key):
+                    value = getpass.getpass(key + ' (entrada oculta): ')
+                    validate_key(value)
+                    os.environ[key] = value
+                    supplied.append(key)
+                    value = None
+        from duet.__main__ import main as cli
         return cli(['live-smoke', '--directory', str(directory),
                     '--config', str(ROOT / 'examples/live-smoke.json'),
                     '--state-dir', str(ROOT.parent / '.duet-live-smoke-state')])
+    except (KeyboardInterrupt, EOFError):
+        print('\nPrueba interrumpida; conserva el estado antes de volver a intentarla.')
+        return 2
+    except Exception:
+        print('No se pudo completar la prueba segura. Consulta duet doctor; no se mostraron claves.')
+        return 1
     finally:
-        os.environ.pop('OPENAI_API_KEY', None)
-        os.environ.pop('ANTHROPIC_API_KEY', None)
+        for key in supplied:
+            os.environ.pop(key, None)
 
 
 if __name__ == '__main__':

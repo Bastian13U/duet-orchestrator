@@ -38,8 +38,8 @@ equipo anfitrión.
 
 ## Ejecución con OpenAI y Claude
 
-1. Configura `OPENAI_API_KEY` y `ANTHROPIC_API_KEY` en el entorno del proceso
-   mediante tu gestor de secretos. No pegues claves en chats, archivos de tarea,
+1. Configura `OPENAI_API_KEY` y `ANTHROPIC_API_KEY` usando las fuentes locales
+   descritas abajo. No pegues claves en chats, archivos de tarea,
    argumentos de comandos ni archivos versionados. Una sesión de ChatGPT o
    Claude en el navegador no proporciona por sí sola acceso a sus APIs.
 2. Copia `examples/config.example.json` a `config.local.json` y elige modelos a
@@ -72,14 +72,37 @@ puede descargar herramientas de empaquetado.
 
 ## Prueba real de conexión, sin ejecutar código generado
 
+El orquestador consulta, en este orden: variables del proceso, `.env.local`
+junto al código del orquestador y el Administrador de credenciales de Windows.
+El archivo local sólo admite las dos variables API, una asignación por línea,
+sin expansión ni ejecución de comandos. Está excluido de Git. No se buscan
+archivos en el repositorio objetivo ni en directorios superiores. La clave
+creada mediante el flujo seguro de OpenAI Developers puede guardarse allí;
+el orquestador no la copia automáticamente a otro almacén.
+
+En Windows, para guardar una clave de Claude que hayas creado en su consola:
+
+```console
+python scripts/configure_api_keys.py --provider anthropic
+python -m duet doctor
+```
+
+El configurador usa entrada oculta y guarda nuevas claves en el Administrador
+de credenciales para tu usuario de Windows. Sin `--provider` configura ambos
+proveedores; conserva las claves existentes. `--replace` sólo permite reemplazar
+las guardadas en ese administrador: las del entorno o archivo se cambian en su
+origen. El diagnóstico muestra presencia y fuente, nunca valores, y no confirma
+todavía que una clave tenga acceso o saldo.
+
 ```console
 python scripts/secure_live_smoke.py
 ```
 
-Ejecuta esa orden en tu propia terminal. Solicita las claves con entrada oculta,
-las mantiene sólo en la memoria del proceso y ejecuta una prueba limitada a
-US$1 y 12 llamadas acumuladas. No guarda claves ni las envía a GitHub.
-Si ya están configuradas en el entorno, también puedes ejecutar:
+Ejecuta esa orden en tu propia terminal. Reutiliza las claves configuradas y
+solicita las que falten con entrada oculta. Las introducidas en esta prueba sólo
+se mantienen en memoria; las claves previamente guardadas se conservan. La
+prueba está limitada a US$1 y 12 llamadas acumuladas. No envía claves a GitHub.
+Si ambas claves ya están configuradas, también puedes ejecutar:
 
 ```console
 python -m duet live-smoke --directory ../live-validation

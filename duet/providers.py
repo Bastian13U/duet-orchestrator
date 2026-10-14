@@ -1,6 +1,6 @@
 """Small, non-streaming API clients with no tools, redirects, or implicit retries.
 
-Keys are read only from environment variables (or an explicit in-memory value).
+Keys come from the configured local credential resolver or an explicit value.
 Errors deliberately omit response bodies, prompts, headers, and underlying URLs.
 """
 
@@ -9,11 +9,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 import math
-import os
 import ssl
 from typing import Protocol
 import urllib.error
 import urllib.request
+
+from .credentials import get_key, validate_key, CredentialError
 
 
 MAX_RESPONSE_BYTES = 4 * 1024 * 1024
@@ -122,9 +123,14 @@ class _BaseProvider:
             raise ProviderError("A model identifier is required")
         if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or not 0 < timeout <= 600:
             raise ProviderError("Invalid provider timeout")
-        secret = key if key is not None else os.getenv(self.env_key)
-        if not isinstance(secret, str) or not secret.strip() or len(secret) > 4096 or any(c.isspace() for c in secret):
-            raise ProviderError(f"Set {self.env_key} securely in the process environment")
+        try:
+            secret = key if key is not None else get_key(self.env_key)
+            if secret is not None:
+                validate_key(secret)
+        except CredentialError:
+            raise ProviderError('API credential store is unavailable or invalid') from None
+        if secret is None:
+            raise ProviderError(f"Configure {self.env_key} securely in the environment, .env.local, or Windows Credential Manager")
         self.model = model
         self._key = secret
         self.timeout = timeout

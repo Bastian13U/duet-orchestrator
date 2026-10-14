@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -76,3 +77,42 @@ class SandboxTests(unittest.TestCase):
         self.assertFalse(result["passed"])
         self.assertEqual(result["returncode"], 124)
         self.assertIn("[test timeout]", result["output"])
+
+    @unittest.skipUnless(os.name == "nt", "Windows taskkill fallback only")
+    def test_failed_taskkill_still_reaps_child_and_preserves_timeout(self):
+        original_popen = subprocess.Popen
+        for failure in [subprocess.TimeoutExpired(["taskkill"], 10),
+                        FileNotFoundError("Synthetic missing taskkill")]:
+            with self.subTest(failure=type(failure).__name__):
+                children = []
+
+                def start(*args, **kwargs):
+                    child = original_popen(*args, **kwargs)
+                    children.append(child)
+                    return child
+
+                runner = TestRunner(mode="local", allow_local=True, timeout=1)
+                command = [sys.executable, "-c", "import time; time.sleep(30)"]
+                try:
+                    with patch("duet.sandbox.subprocess.Popen", side_effect=start), \
+                            patch("duet.sandbox.subprocess.run", side_effect=failure) as taskkill:
+                        result = runner._execute(command, self.source)
+                    self.assertFalse(result["passed"])
+                    self.assertEqual(result["returncode"], 124)
+                    self.assertIn("[test timeout]", result["output"])
+                    taskkill.assert_called_once()
+                    self.assertEqual(taskkill.call_args.args[0][:2], ["taskkill", "/PID"])
+                    self.assertEqual(len(children), 1)
+                    self.assertIsNotNone(children[0].poll())
+                    self.assertTrue(children[0].stdout.closed)
+                    # Windows permits removing the process working directory only
+                    # after its handle is released. A rename exercises that too.
+                    released = self.root / "released"
+                    self.source.rename(released)
+                    released.rename(self.source)
+                finally:
+                    # Keep regression failures from leaving this synthetic child alive.
+                    for child in children:
+                        if child.poll() is None:
+                            child.kill()
+                            child.wait(timeout=10)

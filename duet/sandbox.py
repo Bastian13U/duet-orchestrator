@@ -128,7 +128,12 @@ class TestRunner:
         except subprocess.TimeoutExpired:
             timed_out = True
             if os.name == "nt":
-                subprocess.run(["taskkill", "/PID", str(proc.pid), "/T", "/F"], env=_environment(), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10, check=False)
+                try:
+                    subprocess.run(["taskkill", "/PID", str(proc.pid), "/T", "/F"], env=_environment(), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10, check=False)
+                except (OSError, subprocess.SubprocessError):
+                    # Reap our child even when the tree-cleanup helper fails or hangs.
+                    # Trusted-local mode cannot guarantee cleanup of grandchildren.
+                    pass
             else:
                 try:
                     os.killpg(proc.pid, signal.SIGKILL)

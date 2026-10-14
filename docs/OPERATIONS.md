@@ -3,7 +3,7 @@
 ## Preparación
 
 Ejecuta `python -m duet doctor` para inspeccionar dependencias y presencia de las
-variables necesarias sin revelar sus valores. El diagnóstico local no demuestra
+claves necesarias y su fuente sin revelar sus valores. El diagnóstico local no demuestra
 que una clave esté vigente, que tenga saldo ni que el modelo esté habilitado.
 Una prueba real sólo queda validada cuando ambos proveedores responden y el
 recorrido concluye con pruebas y revisión satisfactorias.
@@ -22,7 +22,8 @@ Antes de usar APIs reales:
 2. Elige un objetivo pequeño, verificable por tests deterministas.
 3. Configura modelos, tarifas vigentes, número de llamadas y presupuesto.
 4. Comprueba Docker y descarga previamente una imagen de pruebas confiable.
-5. Proporciona las claves mediante el entorno sin imprimirlas en el terminal.
+5. Proporciona las claves mediante entorno, `.env.local` del orquestador o el
+   configurador de Windows, sin imprimirlas en el terminal.
 6. Ejecuta la demo y los tests del proyecto antes de un cambio operativo.
 
 La identidad de Git para los commits del orquestador no concede acceso a
@@ -42,10 +43,11 @@ necesites la trazabilidad. No publiques el directorio de estado con el código.
 
 ## Diagnóstico de fallos
 
-**Falta una clave o el modelo no es accesible.** Configura la variable mediante
-tu gestor de secretos, confirma la habilitación del modelo en el proveedor y
+**Falta una clave o el modelo no es accesible.** Revisa la fuente indicada por
+`doctor` y configura la clave mediante el flujo seguro o tu gestor de secretos.
+Confirma la habilitación del modelo en el proveedor y
 conserva el directorio de estado. No intentes solventarlo con cookies de una
-sesión de navegador o copiando credenciales a archivos del repositorio.
+sesión de navegador o copiando credenciales a archivos versionados.
 
 **Se alcanzó el presupuesto.** Inspecciona la contabilidad y el uso de ambas APIs.
 Las reservas de peticiones fallidas pueden seguir consumiendo el presupuesto

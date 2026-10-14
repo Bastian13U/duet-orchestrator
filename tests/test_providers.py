@@ -89,12 +89,23 @@ class ProviderTests(unittest.TestCase):
             AnthropicProvider("test-model", key="test-key").generate("s", "p", SCHEMA, 300)
 
     def test_missing_key_is_named_but_never_leaked(self):
-        with patch.dict(os.environ, {}, clear=True):
+        with patch('duet.providers.get_key', return_value=None):
             with self.assertRaisesRegex(ProviderError, "OPENAI_API_KEY"):
                 OpenAIProvider("test-model")
         with self.assertRaises(ProviderError) as caught:
             AnthropicProvider("test-model", key="SECRET\nVALUE")
         self.assertNotIn("SECRET", str(caught.exception))
+
+    def test_explicit_keys_do_not_consult_local_stores(self):
+        with patch('duet.providers.get_key') as resolver:
+            OpenAIProvider('test-model', key='test-key')
+            AnthropicProvider('test-model', key='test-key')
+        resolver.assert_not_called()
+
+    def test_local_key_resolver_is_used_without_network(self):
+        with patch('duet.providers.get_key', return_value='test-key') as resolver:
+            OpenAIProvider('test-model')
+        resolver.assert_called_once_with('OPENAI_API_KEY')
 
     def test_request_bound_includes_unicode_and_schema(self):
         simple = request_bound("s", "p", {})
